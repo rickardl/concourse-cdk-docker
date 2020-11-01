@@ -1,16 +1,34 @@
-# Inspired by https://github.com/mumoshu/dcind
 FROM alpine:3.10
 
-ENV DOCKER_VERSION=18.09.8 \
-    DOCKER_COMPOSE_VERSION=1.24.1
+ENV DOCKER_CHANNEL=stable \
+  DOCKER_VERSION=19.03.2 \
+  DOCKER_COMPOSE_VERSION=1.24.1 \
+  DOCKER_SQUASH=0.2.0
 
-# Install Docker and Docker Compose
-RUN apk --no-cache add bash curl util-linux device-mapper py-pip python-dev libffi-dev openssl-dev gcc libc-dev make iptables && \
-    curl https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz | tar zx && \
-    mv /docker/* /bin/ && \
-    chmod +x /bin/docker* && \
-    pip install docker-compose==${DOCKER_COMPOSE_VERSION} && \
-    rm -rf /root/.cache
+# Install Docker
+RUN apk --update --no-cache add \
+  bash \
+  curl \
+  device-mapper \
+  py-pip \
+  python-dev \
+  iptables \
+  util-linux \
+  ca-certificates \
+  gcc \
+  libc-dev \
+  libffi-dev \
+  openssl-dev \
+  make \
+  && \
+  apk upgrade && \
+  curl -fL "https://download.docker.com/linux/static/${DOCKER_CHANNEL}/x86_64/docker-${DOCKER_VERSION}.tgz" | tar zx && \
+  mv /docker/* /bin/ && chmod +x /bin/docker* && \
+  pip install docker-compose==${DOCKER_COMPOSE_VERSION} && \
+  curl -fL "https://github.com/jwilder/docker-squash/releases/download/v${DOCKER_SQUASH}/docker-squash-linux-amd64-v${DOCKER_SQUASH}.tar.gz" | tar zx && \
+  mv /docker-squash* /bin/ && chmod +x /bin/docker-squash* && \
+  rm -rf /var/cache/apk/* && \
+  rm -rf /root/.cache
 
 ENV AWSCDK_VERSION 1.71.0
 
@@ -182,8 +200,7 @@ RUN npm i -g aws-cdk@${AWSCDK_VERSION} \
   @types/node@latest
 
 # Include functions to start/stop docker daemon
-COPY docker-lib.sh /docker-lib.sh
-COPY entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /bin/entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["/bin/bash"]

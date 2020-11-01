@@ -1,0 +1,22 @@
+version: "2"
+
+vars:
+  BUILD_DIR: build
+  DOCKER_REPO: rickardl/concourse-cdk-docker
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    desc: Build docker image under dev tag.
+    cmds:
+      - docker build -t {{.DOCKER_REPO}}:dev .
+
+  ci:
+    desc: CI build and tests
+    cmds:
+      - task: build
+      - if [ -n "$(git status --porcelain)" ];then echo "Diff in generated files and/or formatting" && exit 1; fi
+    silent: true
