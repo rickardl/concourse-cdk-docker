@@ -30,7 +30,7 @@ RUN apk --update --no-cache add \
   rm -rf /var/cache/apk/* && \
   rm -rf /root/.cache
 
-ENV AWSCDK_VERSION 1.71.0
+ENV AWSCDK_VERSION 1.84.0
 
 RUN apk update && apk upgrade
 RUN apk add --no-cache --update python3 python3-dev git jq
